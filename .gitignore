@@ -1,0 +1,27 @@
+# Ignore files and folders: so that they won't be pushed, committed, or tracked by Git.
+
+# Company data(Any files under these folders will be ignored)
+data/
+dataset/
+datasets/
+
+*.csv
+*.xlsx
+*.xls
+*.parquet
+
+# PyTorch models
+*.pt
+*.pth
+*.ckpt
+
+# Secrets
+.env
+credentials.json
+
+# Python
+__pycache__/
+*.pyc
+
+# Jupyter
+.ipynb_checkpoints/

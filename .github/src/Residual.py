@@ -3,6 +3,7 @@ import torch
 
 def Qit_phis(
     phis,
+    phi_f,
     Dit_mid,
     Dit_edge,
     sigma_it,
@@ -45,7 +46,7 @@ def Qit_phis(
     phi_Fermi = phi_fermi(T,NA,Eg, ref=phis)
 
     # EF - Ei(surface), numerically in eV
-    EF_minus_Ei = phis - phi_Fermi
+    EF_minus_Ei = phis - phi_Fermi - phi_f
 
     # Since:
     # Ec - Ei = Ec_minus_Ei
@@ -80,10 +81,11 @@ def Qit_phis(
     return Qit
 
 def Vfbs(
-    Vfb0,
+    Vfbs0,
     Cox,
     Qox,
     phis,
+    phi_f,
     Dit_mid,
     Dit_edge,
     sigma_it,
@@ -92,18 +94,65 @@ def Vfbs(
     NA,
     Eg,
 ):
-    Qit_p = Qit_phis(    phis,
-    Dit_mid,
-    Dit_edge,
-    sigma_it,
-    Ec_minus_Ei,
-    T,
-    NA,
-    Eg,)
 
-    Vfbs = Vfb0 - (Qit_p + Qox)/ Cox
+    # --------------------------------------------------------
+    # Convert parameters to same dtype/device as phis
+    # --------------------------------------------------------
 
-    return Vfbs
+    Vfbs0 = torch.as_tensor(
+        Vfbs0,
+        dtype=phis.dtype,
+        device=phis.device
+    )
+
+    Cox = torch.as_tensor(
+        Cox,
+        dtype=phis.dtype,
+        device=phis.device
+    )
+
+    Qox = torch.as_tensor(
+        Qox,
+        dtype=phis.dtype,
+        device=phis.device
+    )
+
+    phi_f = torch.as_tensor(
+        phi_f,
+        dtype=phis.dtype,
+        device=phis.device
+    )
+
+
+    # --------------------------------------------------------
+    # Interface-trap charge
+    # --------------------------------------------------------
+
+    Qit = Qit_phis(
+        phis,
+        phi_f,
+        Dit_mid,
+        Dit_edge,
+        sigma_it,
+        Ec_minus_Ei,
+        T,
+        NA,
+        Eg,
+    )
+
+
+    # --------------------------------------------------------
+    # Effective flat-band voltage
+    #
+    # Vfbs = Vfbs0 - (Qit + Qox) / Cox
+    # --------------------------------------------------------
+
+    Vfbs_p = (
+        Vfbs0
+        - (Qit + Qox) / Cox
+    )
+
+    return Vfbs_p
 
 #######################################
 
@@ -162,7 +211,7 @@ def ni_4H_SiC(T, Eg, ref):
     Nc = Nc_4H_SiC(T, ref)
     Nv = Nv_4H_SiC(T, ref)
 
-    return torch.sqrt(Nc * Nv) * torch.exp(
+    return torch.sqrt(Nc) * torch.sqrt(Nv) * torch.exp(
         -Eg / (2.0 * k_B_eV * T)
     )
 
@@ -207,13 +256,7 @@ def H_phis(
     phi_Fermi,
     phi_f,
 ):
-    """
-    Returns:
-    H : torch.Tensor
-        H(phi_s)
-    """
 
-    # Keep all parameters on the same dtype/device as phis
     phi_t = torch.as_tensor(
         phi_t,
         dtype=phis.dtype,
@@ -232,53 +275,68 @@ def H_phis(
         device=phis.device
     )
 
-    def safe_exp(x):
-        return torch.exp(
-            torch.clamp(
-                x,
-                min=-80.0,
-                max=80.0
-            )
-        )
-    
-    # First term:
-    # phi_t * exp(-phis / phi_t)
-    term_1 = (
-        phi_t
-        * safe_exp(
-            -phis / phi_t
-        )
+
+    # --------------------------------------------------------
+    # Numerically stable exponent arguments
+    # --------------------------------------------------------
+
+    acc_arg = (
+        -phis / phi_t
     )
 
-    # Second term:
-    # phis - phi_t
-    term_2 = (
+    inv_arg = (
         phis
-        - phi_t
-    )
+        - 2.0 * phi_Fermi
+        - phi_f
+    ) / phi_t
 
-    # Quasi-Fermi exponential term:
-    # exp(-(2*phi_Fermi + phi_f) / phi_t)
-    quasi_fermi_term = torch.exp(
+    qf_arg = (
         -(2.0 * phi_Fermi + phi_f)
         / phi_t
     )
 
-    # Inversion term:
-    # phi_t * exp(phis / phi_t) - phis - phi_t
-    inversion_term = (
-        phi_t
-        * torch.exp(phis / phi_t)
-        - phis
-        - phi_t
+
+    # --------------------------------------------------------
+    # Safe exponentials
+    # --------------------------------------------------------
+
+    exp_acc = torch.exp(
+        torch.clamp(
+            acc_arg,
+            min=-80.0,
+            max=80.0
+        )
     )
 
-    # Expression inside sqrt
-    H_squared = (
-        term_1
-        + term_2
-        + quasi_fermi_term * inversion_term
+    exp_inv = torch.exp(
+        torch.clamp(
+            inv_arg,
+            min=-80.0,
+            max=80.0
+        )
     )
+
+    exp_qf = torch.exp(
+        torch.clamp(
+            qf_arg,
+            min=-80.0,
+            max=80.0
+        )
+    )
+
+
+    # --------------------------------------------------------
+    # Stable form of H^2
+    # --------------------------------------------------------
+
+    H_squared = (
+        phi_t * exp_acc
+        + phis
+        - phi_t
+        + phi_t * exp_inv
+        - exp_qf * (phis + phi_t)
+    )
+
 
     # Numerical protection
     H_squared_safe = torch.clamp(

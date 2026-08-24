@@ -93,6 +93,7 @@ def physics_loss(
         Cox,
         Qox,
         phis_PINN,
+        phi_f,
         Dit_mid,
         Dit_edge,
         sigma_it,

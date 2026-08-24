@@ -91,8 +91,40 @@ def phi_init(
         (2.0 * alpha)
     )**2
 
-    u_itc = (q* Dit_edge* sigma_it* torch.exp((-Eg / 2.0 - phi_Fermi)/ sigma_it)/ (phi_t * Cox))
-    u_it0 = (uf + sigma_it / phi_t * torch.log(gamma / u_itc))
+    #u_itc = (q* Dit_edge* sigma_it* torch.exp((-Eg / 2.0 - phi_Fermi)/ sigma_it)/ (phi_t * Cox))
+    #u_it0 = (uf + sigma_it / phi_t * torch.log(gamma / u_itc))
+    exp_itc_arg = (
+    (-Eg / 2.0 - phi_Fermi)
+    / sigma_it
+)
+
+    exp_itc_arg_safe = torch.clamp(
+        exp_itc_arg,
+        min=-80.0,
+        max=80.0
+    )
+
+    u_itc = (
+        q
+        * Dit_edge
+        * sigma_it
+        * torch.exp(exp_itc_arg_safe)
+        /
+         (phi_t * Cox)
+    )
+
+    u_itc_safe = torch.clamp(
+        u_itc,
+        min=1e-30
+    )
+
+    u_it0 = (
+        uf
+        + sigma_it / phi_t
+        * torch.log(
+            gamma / u_itc_safe
+        )
+    )
     u_si0 = (uf + 2.0 * phi_Fermi / phi_t)
 
     #    Weak Inversion: if uit0 <= u_dep
@@ -107,7 +139,7 @@ def phi_init(
         - alpha * u_it0
         - gamma * torch.sqrt(u_it0_safe)
         + gamma
-    ) / u_itc
+    ) / u_itc_safe
 
     weak_valid = (
         (u_it0 >= 0.0)

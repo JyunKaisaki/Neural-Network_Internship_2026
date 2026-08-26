@@ -110,12 +110,18 @@ def physics_loss(
         phi_f,
     )
 
+    sign_phis = torch.sign(
+    phis_PINN
+)
+
     residual = (
-        Vgs
-        - Vfbs_p
-        - phis_PINN
-        - gamma * H
-    )
+    Vgs
+    - Vfbs_p
+    - phis_PINN
+    - sign_phis
+    * gamma
+    * H
+)
 
     loss_SPE = torch.mean(
         residual ** 2

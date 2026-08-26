@@ -62,21 +62,45 @@ def Qit_phis(
     # Ei - Ec = -(Ec - Ei)
     Ei_minus_Ec = -Ec_minus_Ei
 
-    Qit = -q * (
-        Dit_mid * EF_minus_Ei
-        +
-        Dit_edge
-        * sigma_it
-        * (
-            torch.exp(
-                EF_minus_Ec / sigma_it
-            )
-            -
-            torch.exp(
-                Ei_minus_Ec / sigma_it
-            )
-        )
+    arg_edge = (
+    EF_minus_Ec
+    / sigma_it
+)
+
+    arg_mid = (
+    Ei_minus_Ec
+    / sigma_it
+)
+
+
+    exp_edge = torch.exp(
+    torch.clamp(
+        arg_edge,
+        min=-80.0,
+        max=80.0
     )
+)
+
+    exp_mid = torch.exp(
+    torch.clamp(
+        arg_mid,
+        min=-80.0,
+        max=80.0
+    )
+)
+
+
+    Qit = -q * (
+    Dit_mid
+    * EF_minus_Ei
+    +
+    Dit_edge
+    * sigma_it
+    * (
+        exp_edge
+        - exp_mid
+    )
+)
 
     return Qit
 
@@ -95,9 +119,7 @@ def Vfbs(
     Eg,
 ):
 
-    # --------------------------------------------------------
     # Convert parameters to same dtype/device as phis
-    # --------------------------------------------------------
 
     Vfbs0 = torch.as_tensor(
         Vfbs0,
@@ -124,9 +146,7 @@ def Vfbs(
     )
 
 
-    # --------------------------------------------------------
     # Interface-trap charge
-    # --------------------------------------------------------
 
     Qit = Qit_phis(
         phis,
@@ -141,12 +161,7 @@ def Vfbs(
     )
 
 
-    # --------------------------------------------------------
     # Effective flat-band voltage
-    #
-    # Vfbs = Vfbs0 - (Qit + Qox) / Cox
-    # --------------------------------------------------------
-
     Vfbs_p = (
         Vfbs0
         - (Qit + Qox) / Cox
@@ -338,14 +353,19 @@ def H_phis(
     )
 
 
-    # Numerical protection
+    eps_H = torch.as_tensor(
+    1e-24,
+    dtype=phis.dtype,
+    device=phis.device
+)
+
     H_squared_safe = torch.clamp(
-        H_squared,
-        min=0.0
-    )
+    H_squared,
+    min=eps_H
+)
 
     H = torch.sqrt(
-        H_squared_safe
-    )
+    H_squared_safe
+)
 
     return H

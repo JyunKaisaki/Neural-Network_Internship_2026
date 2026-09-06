@@ -37,10 +37,18 @@ def phi_init(
     Eg = torch.as_tensor(Eg, dtype=Vgs.dtype, device=Vgs.device)
     phi_f = torch.as_tensor(phi_f, dtype=Vgs.dtype, device=Vgs.device)
     phi_Fermi = phi_fermi(T, NA, Eg, ref=Vgs)
-    gamma = torch.sqrt(
-    torch.clamp(2.0 * eps_sic * q * NA, min=0.0)
-    ) / Cox
+    # Physical and normalized body factors
+    gamma_phys = torch.sqrt(
+    torch.clamp(
+        2.0 * eps_sic * q * NA,
+        min=0.0
+    )
+) / Cox
 
+    gamma_u = (
+    gamma_phys
+    / torch.sqrt(phi_t)
+)
 
 
     # 3. Effective gate potential: uG
@@ -73,7 +81,7 @@ def phi_init(
     
     #    Depletion: If uG > 0
     dep_arg = (
-        gamma**2
+        gamma_u**2
         + 4.0 * alpha * uG
     )
 
@@ -84,7 +92,7 @@ def phi_init(
 
     u_dep = (
         (
-            -gamma
+            -gamma_u
             + torch.sqrt(dep_arg_safe)
         )
         /
@@ -122,7 +130,7 @@ def phi_init(
         uf
         + sigma_it / phi_t
         * torch.log(
-            gamma / u_itc_safe
+            gamma_u / u_itc_safe
         )
     )
     u_si0 = (uf + 2.0 * phi_Fermi / phi_t)
@@ -137,14 +145,16 @@ def phi_init(
     weak_arg = (
         uG
         - alpha * u_it0
-        - gamma * torch.sqrt(u_it0_safe)
-        + gamma
+        - gamma_u * torch.sqrt(u_it0_safe)
+        + gamma_u
     ) / u_itc_safe
 
+    # Weak-inversion branch validity
     weak_valid = (
-        (u_it0 >= 0.0)
-        & (weak_arg > 0.0)
-    )
+    (u_it0 <= u_dep)
+    & (u_it0 >= 0.0)
+    & (weak_arg > 0.0)
+)
 
     weak_arg_safe = torch.where(
         weak_valid,
@@ -170,14 +180,16 @@ def phi_init(
     #    Strong Inversion: if usi0 <= u_dep
     #u_si = u_si0 + torch.log(((uG - u_si0) / gamma)**2 - u_si0 + 1)
     strong_arg = (
-    ((uG - u_si0) / gamma)**2
+    ((uG - u_si0) / gamma_u)**2
     - u_si0
     + 1.0
 )
 
+    # Strong-inversion branch validity
     strong_valid = (
-        strong_arg > 0.0
-    )
+    (u_si0 <= u_dep)
+    & (strong_arg > 0.0)
+)
 
     strong_arg_safe = torch.where(
         strong_valid,

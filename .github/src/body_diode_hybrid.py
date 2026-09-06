@@ -9,11 +9,7 @@ import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader, TensorDataset, random_split
 
-
-# ============================================================
 # Utilities
-# ============================================================
-
 def set_seed(seed: int = 42) -> None:
     np.random.seed(seed)
     torch.manual_seed(seed)
@@ -24,11 +20,7 @@ def set_seed(seed: int = 42) -> None:
 def get_device() -> torch.device:
     return torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-
-# ============================================================
 # Normalization
-# ============================================================
-
 @dataclass
 class Normalization:
     Vgs_mean: float
@@ -70,11 +62,7 @@ class Normalization:
     def denormalize_output(self, Ibd_n: torch.Tensor) -> torch.Tensor:
         return Ibd_n * self.Ibd_std + self.Ibd_mean
 
-
-# ============================================================
 # Eq. (29): static body-diode ANN
-# ============================================================
-
 class BodyDiodeNN(nn.Module):
     """
     Fully connected network required by the paper excerpt:
@@ -108,11 +96,7 @@ class BodyDiodeNN(nn.Module):
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         return self.network(x)
 
-
-# ============================================================
 # Data
-# ============================================================
-
 def load_ibd_csv(
     csv_path: str,
     vgs_col: str = "Vgs",
@@ -161,11 +145,7 @@ def load_ibd_csv(
 
     return df, Vgs, Vds, Ibd
 
-
-# ============================================================
 # Training
-# ============================================================
-
 @dataclass
 class TrainingHistory:
     train_loss: list
@@ -308,11 +288,7 @@ def train_ibd_network(
 
     return model, norm, history
 
-
-# ============================================================
 # Static prediction
-# ============================================================
-
 def predict_ibd(
     model: BodyDiodeNN,
     norm: Normalization,
@@ -352,11 +328,7 @@ def predict_ibd(
 
     return Ibd
 
-
-# ============================================================
 # Checkpoint
-# ============================================================
-
 def save_ibd_model(
     path: str,
     model: BodyDiodeNN,
@@ -453,11 +425,7 @@ def steady_state_base_charge(
     """
     return qE * tau / (tau + TM)
 
-
-# ============================================================
 # Full hybrid transient simulation
-# ============================================================
-
 def simulate_hybrid_body_diode(
     model: BodyDiodeNN,
     norm: Normalization,

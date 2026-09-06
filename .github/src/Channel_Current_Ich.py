@@ -17,37 +17,74 @@ def channel_integral_I_phi(
     T,
     NA,
     Eg,
-    eps_sic
+    eps_sic,
 ):
 
     Vgs = Vgs.reshape(-1, 1)
     Vds = Vds.reshape(-1, 1)
+
     phis_s0 = phis_s0.reshape(-1, 1)
     phis_sL = phis_sL.reshape(-1, 1)
 
-    q = Vgs.new_tensor(1.602e-19)
-    k_B = Vgs.new_tensor(1.381e-23)
 
-    T_t = Vgs.new_tensor(T)
-    NA_t = Vgs.new_tensor(NA)
-    eps_t = Vgs.new_tensor(eps_sic)
-    Cox_t = Vgs.new_tensor(Cox)
+    q = Vgs.new_tensor(
+        1.602e-19
+    )
 
-    phi_t = k_B * T_t / q
+    k_B = Vgs.new_tensor(
+        1.381e-23
+    )
 
-    gamma = torch.sqrt(
-        torch.clamp(
-            2.0 * eps_t * q * NA_t,
-            min=0.0
+    T_t = Vgs.new_tensor(
+        T
+    )
+
+    NA_t = Vgs.new_tensor(
+        NA
+    )
+
+    eps_t = Vgs.new_tensor(
+        eps_sic
+    )
+
+    Cox_t = Vgs.new_tensor(
+        Cox
+    )
+
+
+    phi_t = (
+        k_B
+        * T_t
+        / q
+    )
+
+
+    gamma = (
+        torch.sqrt(
+            torch.clamp(
+                2.0
+                * eps_t
+                * q
+                * NA_t,
+                min=0.0,
+            )
         )
-    ) / Cox_t
+        / Cox_t
+    )
 
-    Vfbs_drain = Vfbs(
+
+    # Use source-side flat-band voltage in Eq. (18)
+    phi_f_source = torch.zeros_like(
+        Vds
+    )
+
+
+    Vfbs_source = Vfbs(
         Vfbs0,
         Cox,
         Qox,
-        phis_sL,
-        Vds,
+        phis_s0,
+        phi_f_source,
         Dit_mid,
         Dit_edge,
         sigma_it,
@@ -57,34 +94,54 @@ def channel_integral_I_phi(
         Eg,
     )
 
+
+    # Forward-channel surface potentials
     s0 = torch.clamp(
         phis_s0,
-        min=0.0
+        min=0.0,
     )
 
     sL = torch.clamp(
         phis_sL,
-        min=0.0
+        min=0.0,
     )
 
+
+    # Eq. (18)
     term1 = (
         Cox_t
-        * (Vgs - Vfbs_drain + phi_t)
-        * (sL - s0)
+        * (
+            Vgs
+            - Vfbs_source
+            + phi_t
+        )
+        * (
+            sL
+            - s0
+        )
     )
+
 
     term2 = (
         -0.5
         * Cox_t
-        * (sL**2 - s0**2)
+        * (
+            sL**2
+            - s0**2
+        )
     )
+
 
     term3 = (
         -(2.0 / 3.0)
         * gamma
         * Cox_t
-        * (sL**1.5 - s0**1.5)
+        * (
+            sL**1.5
+            - s0**1.5
+        )
     )
+
 
     term4 = (
         phi_t
@@ -96,12 +153,16 @@ def channel_integral_I_phi(
         )
     )
 
-    return (
+
+    I_phi = (
         term1
         + term2
         + term3
         + term4
     )
+
+
+    return I_phi
 
 def channel_current_Ich(
     Vgs,

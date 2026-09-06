@@ -6,7 +6,6 @@ from Residual import (
 )
 
 
-# ============================================================
 # G(phi_gd)
 #
 # Paper Eq. (24)
@@ -17,7 +16,6 @@ from Residual import (
 # - exp(-phi_gd / phi_t)
 # + exp(-(2*phi_F + Vds)/phi_t)
 #   * (exp(phi_gd/phi_t) - 1)
-# ============================================================
 
 def G_phigd(
     phigd,
@@ -152,7 +150,6 @@ def G_phigd(
     return G
 
 
-# ============================================================
 # CJFET
 #
 # Paper Eq. (23)
@@ -165,7 +162,6 @@ def G_phigd(
 #
 # IMPORTANT:
 # No abs() is used because Eq. (23) does not contain abs().
-# ============================================================
 
 def Cjfet(
     phigd,
@@ -258,7 +254,6 @@ def Cjfet(
     return C_JFET
 
 
-# ============================================================
 # Cgd
 #
 # Paper Eq. (22)
@@ -268,7 +263,6 @@ def Cjfet(
 # Coxgd * CJFET
 # -----------------
 # Coxgd + CJFET
-# ============================================================
 
 def Cgd(
     phigd,
@@ -313,7 +307,6 @@ def Cgd(
     return Cgd_value
 
 
-# ============================================================
 # Cds without punch-through
 #
 # Paper Eq. (25)
@@ -325,7 +318,6 @@ def Cgd(
 #     ----------------
 #     2 * (Vbi + Vds)
 # )
-# ============================================================
 
 def Cds_no_PT(
     Vds,
@@ -393,7 +385,6 @@ def Cds_no_PT(
     return Cds_value
 
 
-# ============================================================
 # Cds with punch-through
 #
 # Screenshot:
@@ -401,7 +392,6 @@ def Cds_no_PT(
 #
 # Therefore after Vds reaches Vpt, the depletion width
 # is no longer allowed to increase.
-# ============================================================
 
 def Cds(
     Vds,
@@ -439,12 +429,10 @@ def Cds(
     )
 
 
-# ============================================================
 # Cgs
 #
 # Screenshot:
 # Cgs is modeled as a constant.
-# ============================================================
 
 def Cgs(
     Vds,

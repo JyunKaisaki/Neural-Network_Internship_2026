@@ -4,24 +4,12 @@ import torch.nn as nn
 from phis_init import phi_init
 
 
-# Surface-potential PINN
+# Original proposed surface-potential PINN
 class DeltaPhisPINN(nn.Module):
 
-    def __init__(
-        self,
-        vgs_min=-10.0,
-        vgs_max=30.0,
-        phif_min=0.0,
-        phif_max=15.0,
-    ):
+    def __init__(self):
 
         super().__init__()
-
-        self.vgs_min = vgs_min
-        self.vgs_max = vgs_max
-
-        self.phif_min = phif_min
-        self.phif_max = phif_max
 
         self.net = nn.Sequential(
             nn.Linear(2, 8),
@@ -49,38 +37,10 @@ class DeltaPhisPINN(nn.Module):
         phi_f = phi_f.reshape(-1, 1)
 
 
-        Vgs_norm = (
-            2.0
-            * (
-                Vgs
-                - self.vgs_min
-            )
-            / (
-                self.vgs_max
-                - self.vgs_min
-            )
-            - 1.0
-        )
-
-
-        phif_norm = (
-            2.0
-            * (
-                phi_f
-                - self.phif_min
-            )
-            / (
-                self.phif_max
-                - self.phif_min
-            )
-            - 1.0
-        )
-
-
         x = torch.cat(
             [
-                Vgs_norm,
-                phif_norm,
+                Vgs,
+                phi_f,
             ],
             dim=1,
         )
@@ -94,19 +54,10 @@ def load_surface_potential_model(
     checkpoint,
     device,
     dtype,
-    vgs_min=-10.0,
-    vgs_max=30.0,
-    phif_min=0.0,
-    phif_max=15.0,
     freeze=True,
 ):
 
-    model = DeltaPhisPINN(
-        vgs_min=vgs_min,
-        vgs_max=vgs_max,
-        phif_min=phif_min,
-        phif_max=phif_max,
-    ).to(
+    model = DeltaPhisPINN().to(
         device=device,
         dtype=dtype,
     )
@@ -193,10 +144,7 @@ def predict_phis(
     )
 
 
-    phis = (
+    return (
         phis_init_value
         + delta_phis
     )
-
-
-    return phis

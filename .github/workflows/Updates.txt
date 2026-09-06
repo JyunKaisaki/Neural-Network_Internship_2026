@@ -1,0 +1,13 @@
+Till 2026-09-04:
+
+Proposed Model is done. C-V Curves well fit.
+Clarify: Ich models Ids-firt-quadrant-characteristic Curve.
+         Ibd models Ids-third-quadrant-characteristic Curve.
+
+TO DO:
+
+Make Ich more fit to Fig 5(a), now it's finally using Cubic fit(like POlynomial Fit, cheating by GPT)
+
+Make Ibd more fit to Fig 6(a), now it can not even plot the curve.
+
+Will be done before next Tuesday.

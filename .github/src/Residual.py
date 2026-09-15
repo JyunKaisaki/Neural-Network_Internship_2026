@@ -169,6 +169,35 @@ def Vfbs(
 
     return Vfbs_p
 
+
+def Vfbs_from_independent(
+    Vfbs0,
+    Cox,
+    phis,
+    phi_f,
+    Dit_mid,
+    Dit_edge,
+    sigma_it,
+    Ec_minus_Ei,
+    T,
+    NA,
+    Eg,
+):
+    # Treat Vfbs0 as the phi_s-independent part of the effective flat-band voltage.
+    q = torch.as_tensor(1.602176634e-19, dtype=phis.dtype, device=phis.device)
+    Cox_t = torch.as_tensor(Cox, dtype=phis.dtype, device=phis.device)
+    Vfbs0_t = torch.as_tensor(Vfbs0, dtype=phis.dtype, device=phis.device)
+    Dit_mid_t = torch.as_tensor(Dit_mid, dtype=phis.dtype, device=phis.device)
+    Dit_edge_t = torch.as_tensor(Dit_edge, dtype=phis.dtype, device=phis.device)
+    sigma_t = torch.as_tensor(sigma_it, dtype=phis.dtype, device=phis.device)
+    Ec_minus_Ei_t = torch.as_tensor(Ec_minus_Ei, dtype=phis.dtype, device=phis.device)
+    phi_f_t = torch.as_tensor(phi_f, dtype=phis.dtype, device=phis.device)
+    phi_Fermi = phi_fermi(T, NA, Eg, ref=phis)
+    midgap_shift = q * Dit_mid_t * phis / Cox_t
+    edge_arg = (phis - phi_Fermi - phi_f_t - Ec_minus_Ei_t) / sigma_t
+    edge_shift = q * Dit_edge_t * sigma_t * torch.exp(torch.clamp(edge_arg, min=-80.0, max=80.0)) / Cox_t
+    return Vfbs0_t + midgap_shift + edge_shift
+
 #######################################
 
 

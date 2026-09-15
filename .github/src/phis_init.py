@@ -8,7 +8,7 @@ def phi_init(
     NA,    # Acceptor concentration
     eps_sic, # Permittivity of SiC
     Cox,   # Oxide capacitance
-    Vfbs0, # Flat-band voltage at T=0K
+    Vfbs0, # phi_s-independent effective flat-band term
     Dit_mid, # Interface trap density at mid-gap
     Dit_edge, # Interface trap density at band edges
     sigma_it, # Standard deviation of interface trap energy distribution
@@ -64,7 +64,7 @@ def phi_init(
     #    phis_init = (-2.0 * phi_t * torch.log(1.0 - uG / gamma))
     acc_arg = (
         1.0
-        - torch.sqrt(phi_t) * uG / gamma
+        - uG / gamma_u
     )
 
     acc_arg_safe = torch.clamp(

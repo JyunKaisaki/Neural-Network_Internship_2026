@@ -45,7 +45,7 @@ class DeltaPhisPINN(nn.Module):
             Vgs, phi_f = self._normalize(Vgs, phi_f)
         return self.net(torch.cat([Vgs, phi_f], dim=1))
 
-
+# phis = phis_init(From phis_init.py import phi_init) + correction. This function also used for Φs0, ΦsL in IchModeling.
 def surface_potential(
     model,
     Vgs,
@@ -77,6 +77,7 @@ def surface_potential(
         sigma_it,
         Eg,
     ).reshape(-1, 1)
+    # reshape(-1, 1) ensures that the output is a column vector, which is consistent with the expected output shape of the model.
     return phis_ini + model(Vgs, phi_f)
 
 

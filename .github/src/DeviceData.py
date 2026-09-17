@@ -5,11 +5,8 @@ import numpy as np
 import pandas as pd
 
 
-TEMPERATURE_FOLDERS = {
-    -55.0: "-55",
-    25.0: "25",
-    150.0: "150",
-}
+ROOM_TEMPERATURE_C = 25.0
+ROOM_TEMPERATURE_K = ROOM_TEMPERATURE_C + 273.15
 
 
 def _read_two_column_csv(path, names):
@@ -21,48 +18,36 @@ def _read_two_column_csv(path, names):
 
 def load_output_characteristics(template_dir):
     template_dir = Path(template_dir)
-    folder_map = {
-        -55.0: template_dir / "OutputChara-55",
-        25.0: template_dir / "OutputChara25",
-        150.0: template_dir / "OutputChara150",
-    }
+    folder = template_dir / "OutputChara25"
     frames = []
-    for temp_c, folder in folder_map.items():
-        for path in sorted(folder.glob("Vgs_*V.csv")):
-            match = re.search(r"Vgs_(-?\d+(?:\.\d+)?)V", path.stem)
-            if match is None:
-                continue
-            vgs = float(match.group(1))
-            df = _read_two_column_csv(path, ["Vds", "Ids"])
-            df["Vgs"] = vgs
-            df["T_C"] = temp_c
-            df["T_K"] = temp_c + 273.15
-            df["curve_id"] = f"output_{temp_c:g}C_Vgs{vgs:g}V"
-            frames.append(df)
+    for path in sorted(folder.glob("Vgs_*V.csv")):
+        match = re.search(r"Vgs_(-?\d+(?:\.\d+)?)V", path.stem)
+        if match is None:
+            continue
+        vgs = float(match.group(1))
+        df = _read_two_column_csv(path, ["Vds", "Ids"])
+        df["Vgs"] = vgs
+        df["T_C"] = ROOM_TEMPERATURE_C
+        df["T_K"] = ROOM_TEMPERATURE_K
+        df["curve_id"] = f"output_25C_Vgs{vgs:g}V"
+        frames.append(df)
     if not frames:
-        raise FileNotFoundError("No output-characteristic CSV files were found.")
+        raise FileNotFoundError(f"No output-characteristic CSV files were found in {folder}.")
     return pd.concat(frames, ignore_index=True)[["T_C", "T_K", "Vgs", "Vds", "Ids", "curve_id"]]
 
 
 def load_transfer_characteristics(template_dir, vds_value=20.0):
     template_dir = Path(template_dir)
-    folder_map = {
-        -55.0: template_dir / "TransferChara-55",
-        25.0: template_dir / "TransferChara25",
-        150.0: template_dir / "TransferChara150",
-    }
-    frames = []
-    for temp_c, folder in folder_map.items():
-        files = sorted(folder.glob("*.csv"))
-        if len(files) != 1:
-            raise FileNotFoundError(f"Expected one transfer CSV in {folder}, found {len(files)}.")
-        df = _read_two_column_csv(files[0], ["Vgs", "Ids"])
-        df["Vds"] = float(vds_value)
-        df["T_C"] = temp_c
-        df["T_K"] = temp_c + 273.15
-        df["curve_id"] = f"transfer_{temp_c:g}C_Vds{vds_value:g}V"
-        frames.append(df)
-    return pd.concat(frames, ignore_index=True)[["T_C", "T_K", "Vgs", "Vds", "Ids", "curve_id"]]
+    folder = template_dir / "TransferChara25"
+    files = sorted(folder.glob("*.csv"))
+    if len(files) != 1:
+        raise FileNotFoundError(f"Expected one transfer CSV in {folder}, found {len(files)}.")
+    df = _read_two_column_csv(files[0], ["Vgs", "Ids"])
+    df["Vds"] = float(vds_value)
+    df["T_C"] = ROOM_TEMPERATURE_C
+    df["T_K"] = ROOM_TEMPERATURE_K
+    df["curve_id"] = f"transfer_25C_Vds{vds_value:g}V"
+    return df[["T_C", "T_K", "Vgs", "Vds", "Ids", "curve_id"]]
 
 
 def load_iv_characteristics(template_dir, transfer_vds=20.0):
@@ -76,26 +61,21 @@ def load_iv_characteristics(template_dir, transfer_vds=20.0):
 
 def load_body_diode_characteristics(template_dir):
     template_dir = Path(template_dir)
-    folder_map = {
-        -55.0: template_dir / "Ibd-55",
-        25.0: template_dir / "Ibd25",
-        150.0: template_dir / "Ibd150",
-    }
+    folder = template_dir / "Ibd25"
     frames = []
-    for temp_c, folder in folder_map.items():
-        for path in sorted(folder.glob("Vgs_*V.csv")):
-            match = re.search(r"Vgs_(-?\d+(?:\.\d+)?)V", path.stem)
-            if match is None:
-                continue
-            vgs = float(match.group(1))
-            df = _read_two_column_csv(path, ["Vds", "Ibd"])
-            df["Vgs"] = vgs
-            df["T_C"] = temp_c
-            df["T_K"] = temp_c + 273.15
-            df["curve_id"] = f"ibd_{temp_c:g}C_Vgs{vgs:g}V"
-            frames.append(df)
+    for path in sorted(folder.glob("Vgs_*V.csv")):
+        match = re.search(r"Vgs_(-?\d+(?:\.\d+)?)V", path.stem)
+        if match is None:
+            continue
+        vgs = float(match.group(1))
+        df = _read_two_column_csv(path, ["Vds", "Ibd"])
+        df["Vgs"] = vgs
+        df["T_C"] = ROOM_TEMPERATURE_C
+        df["T_K"] = ROOM_TEMPERATURE_K
+        df["curve_id"] = f"ibd_25C_Vgs{vgs:g}V"
+        frames.append(df)
     if not frames:
-        raise FileNotFoundError("No body-diode CSV files were found.")
+        raise FileNotFoundError(f"No body-diode CSV files were found in {folder}.")
     return pd.concat(frames, ignore_index=True)[["T_C", "T_K", "Vgs", "Vds", "Ibd", "curve_id"]]
 
 
@@ -117,5 +97,7 @@ def load_cv_characteristics(template_dir):
             df = _read_two_column_csv(path, ["Vds", "Capacitance_pF"])
             df["capacitance"] = capacitance
             df["range"] = range_name
+            df["T_C"] = ROOM_TEMPERATURE_C
+            df["T_K"] = ROOM_TEMPERATURE_K
             frames.append(df)
-    return pd.concat(frames, ignore_index=True)[["Vds", "Capacitance_pF", "capacitance", "range"]]
+    return pd.concat(frames, ignore_index=True)[["T_C", "T_K", "Vds", "Capacitance_pF", "capacitance", "range"]]

@@ -60,7 +60,7 @@ def channel_integral_I_phi(
     term4 = phi_t * gamma * Cox_t * (torch.sqrt(sL) - torch.sqrt(s0))
     return term1 + term2 + term3 + term4
 
-
+# Vdseff
 def effective_vds(Vds, Vdssat, delta):
     Vds = Vds.reshape(-1, 1)
     Vdssat = torch.clamp(_as_like(Vdssat, Vds), min=1.0e-6)
@@ -68,7 +68,7 @@ def effective_vds(Vds, Vdssat, delta):
     ratio = torch.clamp(Vds / Vdssat, min=0.0)
     return Vds * torch.pow(1.0 + torch.pow(ratio, delta), -1.0 / delta)
 
-
+# μeff
 def effective_mobility(mu_lf, Ey, vsat):
     mu_lf = torch.clamp(_as_like(mu_lf, Ey), min=1.0e-12)
     vsat = torch.clamp(_as_like(vsat, Ey), min=1.0e-12)

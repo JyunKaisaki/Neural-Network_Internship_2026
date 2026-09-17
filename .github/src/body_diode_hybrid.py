@@ -101,32 +101,19 @@ def _ibd_loss_terms(
     sign_weight,
     zero_weight,
     zero_width,
-    tail_gain,
-    tail_center,
-    tail_width,
 ):
-    vds_batch = (
-        xb[:, 1:2]
-        * norm.Vds_std
-        + norm.Vds_mean
-    )
-
-    tail_weight = (
-        1.0
-        + tail_gain
-        * torch.sigmoid(
-            (-vds_batch - tail_center)
-            / tail_width
-        )
-    )
-
     data_loss = torch.mean(
-        tail_weight
-        * (pred_n - target_n) ** 2
+        (pred_n - target_n) ** 2
     )
 
     pred_current = norm.denormalize_output(
         pred_n
+    )
+
+    vds_batch = (
+        xb[:, 1:2]
+        * norm.Vds_std
+        + norm.Vds_mean
     )
 
     positive_current = torch.relu(
@@ -186,9 +173,6 @@ def train_ibd_network(
     sign_weight=1.0,
     zero_weight=1.0,
     zero_width=0.50,
-    tail_gain=2.0,
-    tail_center=5.3,
-    tail_width=0.30,
 ):
     set_seed(seed)
 
@@ -330,9 +314,6 @@ def train_ibd_network(
                 sign_weight=sign_weight,
                 zero_weight=zero_weight,
                 zero_width=zero_width,
-                tail_gain=tail_gain,
-                tail_center=tail_center,
-                tail_width=tail_width,
             )
 
             loss.backward()
@@ -381,9 +362,6 @@ def train_ibd_network(
                     sign_weight=sign_weight,
                     zero_weight=zero_weight,
                     zero_width=zero_width,
-                    tail_gain=tail_gain,
-                    tail_center=tail_center,
-                    tail_width=tail_width,
                 )
 
                 val_sum += (

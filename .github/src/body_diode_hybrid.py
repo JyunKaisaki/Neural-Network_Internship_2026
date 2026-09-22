@@ -1,7 +1,6 @@
+# Neural Network is trained here, notebook only do data processing,curve fitting and .pkl packaging
 from dataclasses import asdict, dataclass
 from pathlib import Path
-from typing import Any, Dict, Optional, Tuple
-
 import numpy as np
 import pandas as pd
 import torch
@@ -252,6 +251,8 @@ def train_ibd_network(
         shuffle=False,
     )
 
+
+    # Create the model and optimizer
     model = BodyDiodeNN().to(
         device
     )
@@ -474,6 +475,7 @@ def predict_ibd(
 
     model.eval()
 
+    # Force the Ibd at the 3. Quadrant
     with torch.no_grad():
         Ibd = norm.denormalize_output(
             model(

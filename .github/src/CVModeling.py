@@ -26,15 +26,15 @@ def G_phigd(phigd, Vds, T, NA, Eg):
     return 1.0 - exp_1 + exp_2 * (exp_3 - 1.0)
 
 
-def Cjfet(phigd, Vds, T, NA, ND, Eg, eps_sic, Agd):
+def Cjfet_raw(phigd, Vds, T, NA, ND, Eg, eps_sic, Agd):
     phigd = phigd.reshape(-1, 1)
     Vds = Vds.reshape(-1, 1)
     q = _as_like(1.602176634e-19, phigd)
-    k_B = _as_like(1.380649e-23, phigd)
     T_t = _as_like(T, phigd)
     ND_t = _as_like(ND, phigd)
     eps_t = _as_like(eps_sic, phigd)
     Agd_t = _as_like(Agd, phigd)
+    k_B = _as_like(1.380649e-23, phigd)
     phi_t = k_B * T_t / q
     phi_Fermi = phi_fermi(T, NA, Eg, ref=phigd)
     H = H_phis(phigd, phi_t, phi_Fermi, Vds)
@@ -43,9 +43,13 @@ def Cjfet(phigd, Vds, T, NA, ND, Eg, eps_sic, Agd):
     return Agd_t * torch.sqrt(2.0 * q * eps_t * ND_t) * 0.5 * G / H_safe
 
 
+def Cjfet(phigd, Vds, T, NA, ND, Eg, eps_sic, Agd):
+    return torch.abs(Cjfet_raw(phigd, Vds, T, NA, ND, Eg, eps_sic, Agd))
+
+
 def Cgd(phigd, Vds, T, NA, ND, Eg, eps_sic, Agd, Coxgd):
     C_JFET = Cjfet(phigd, Vds, T, NA, ND, Eg, eps_sic, Agd)
-    Coxgd_t = _as_like(Coxgd, phigd)
+    Coxgd_t = torch.clamp(_as_like(Coxgd, phigd), min=1.0e-30)
     denominator = torch.clamp(Coxgd_t + C_JFET, min=1.0e-30)
     return Coxgd_t * C_JFET / denominator
 
@@ -81,6 +85,6 @@ def built_in_potential_4h_sic(T, NA, ND, Eg, ref):
     T_t = _as_like(T, ref)
     NA_t = _as_like(NA, ref)
     ND_t = _as_like(ND, ref)
-    ni = ni_4H_SiC(T_t, Eg, ref)
+    ni = ni_4H_SiC(T_t, Eg, ref).clamp_min(1.0e-40)
     phi_t = k_B * T_t / q
     return phi_t * (torch.log(NA_t) + torch.log(ND_t) - 2.0 * torch.log(ni))

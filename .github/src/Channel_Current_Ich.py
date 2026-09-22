@@ -2,7 +2,7 @@ import torch
 
 from Residual import Vfbs_from_independent
 
-
+# Make value the same dtype and device of ref.
 def _as_like(value, ref):
     if torch.is_tensor(value):
         return value.to(dtype=ref.dtype, device=ref.device)

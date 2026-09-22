@@ -25,7 +25,7 @@ def surface_potential_residual(
     T_t = torch.as_tensor(T, dtype=phis_PINN.dtype, device=phis_PINN.device)
     NA_t = torch.as_tensor(NA, dtype=phis_PINN.dtype, device=phis_PINN.device)
     eps_t = torch.as_tensor(eps_sic, dtype=phis_PINN.dtype, device=phis_PINN.device)
-    Cox_t = torch.as_tensor(Cox, dtype=phis_PINN.dtype, device=phis_PINN.device)
+    Cox_t = torch.as_tensor(7.0e-8, dtype=phis_PINN.dtype, device=phis_PINN.device)
     Vgs = Vgs.reshape(-1, 1)
     Vds = Vds.reshape(-1, 1)
     phis_PINN = phis_PINN.reshape(-1, 1)

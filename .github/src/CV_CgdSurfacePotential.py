@@ -13,7 +13,7 @@ class DeltaPhiGdPINN(nn.Module):
         self.vgd_max = float(vgd_max)
         self.vds_min = float(vds_min)
         self.vds_max = float(vds_max)
-        self.net = nn.Sequential(nn.Linear(2, 32), nn.Tanh(), nn.Linear(32, 32), nn.Tanh(), nn.Linear(32, 1))
+        self.net = nn.Sequential(nn.Linear(2, 8), nn.Tanh(), nn.Linear(8, 1))
         nn.init.zeros_(self.net[-1].weight)
         nn.init.zeros_(self.net[-1].bias)
 

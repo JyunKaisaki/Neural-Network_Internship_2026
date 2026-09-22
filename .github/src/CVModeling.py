@@ -26,7 +26,7 @@ def G_phigd(phigd, Vds, T, NA, Eg):
     return 1.0 - exp_1 + exp_2 * (exp_3 - 1.0)
 
 
-def Cjfet_raw(phigd, Vds, T, NA, ND, Eg, eps_sic, Agd):
+def Cjfet(phigd, Vds, T, NA, ND, Eg, eps_sic, Agd):
     phigd = phigd.reshape(-1, 1)
     Vds = Vds.reshape(-1, 1)
     q = _as_like(1.602176634e-19, phigd)
@@ -43,15 +43,10 @@ def Cjfet_raw(phigd, Vds, T, NA, ND, Eg, eps_sic, Agd):
     return Agd_t * torch.sqrt(2.0 * q * eps_t * ND_t) * 0.5 * G / H_safe
 
 
-def Cjfet(phigd, Vds, T, NA, ND, Eg, eps_sic, Agd):
-    return torch.abs(Cjfet_raw(phigd, Vds, T, NA, ND, Eg, eps_sic, Agd))
-
-
 def Cgd(phigd, Vds, T, NA, ND, Eg, eps_sic, Agd, Coxgd):
     C_JFET = Cjfet(phigd, Vds, T, NA, ND, Eg, eps_sic, Agd)
     Coxgd_t = torch.clamp(_as_like(Coxgd, phigd), min=1.0e-30)
-    denominator = torch.clamp(Coxgd_t + C_JFET, min=1.0e-30)
-    return Coxgd_t * C_JFET / denominator
+    return Coxgd_t * C_JFET
 
 
 def Cds_no_PT(Vds, ND, eps_sic, Ads, Vbi):

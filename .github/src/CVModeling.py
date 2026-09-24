@@ -43,14 +43,23 @@ def Cjfet_raw(phigd, Vds, T, NA, ND, Eg, eps_sic, Agd):
     return Agd_t * torch.sqrt(2.0 * q * eps_t * ND_t) * 0.5 * G / H_safe
 
 
-def Cjfet(phigd, Vds, T, NA, ND, Eg, eps_sic, Agd):
-    return torch.abs(Cjfet_raw(phigd, Vds, T, NA, ND, Eg, eps_sic, Agd))
+def Cjfet(phigd, Vds, T, NA, ND, Eg, eps_sic, Agd, Cjfet_min=0.0):
+    # Limit the JFET depletion capacitance with a finite high-voltage floor.
+    Cjfet_depletion = torch.abs(Cjfet_raw(phigd, Vds, T, NA, ND, Eg, eps_sic, Agd))
+    Cjfet_min_t = torch.clamp(_as_like(Cjfet_min, phigd), min=0.0)
+    return torch.maximum(Cjfet_depletion, Cjfet_min_t)
 
 
-def Cgd(phigd, Vds, T, NA, ND, Eg, eps_sic, Agd, Coxgd):
-    C_JFET = Cjfet(phigd, Vds, T, NA, ND, Eg, eps_sic, Agd)
+def Cgd(phigd, Vds, T, NA, ND, Eg, eps_sic, Agd, Coxgd, Cjfet_min=0.0, Cgd0=0.0, Vscale=50.0):
+    # Add a decaying low-voltage gate-drain capacitance component.
+    C_JFET = Cjfet(phigd, Vds, T, NA, ND, Eg, eps_sic, Agd, Cjfet_min)
     Coxgd_t = torch.clamp(_as_like(Coxgd, phigd), min=1.0e-30)
-    return Coxgd_t * C_JFET/(Coxgd_t + C_JFET)
+    Cgd_base = Coxgd_t * C_JFET/(Coxgd_t + C_JFET)
+    Cgd0_t = torch.clamp(_as_like(Cgd0, phigd), min=0.0)
+    Vscale_t = torch.clamp(_as_like(Vscale, phigd), min=1.0e-6)
+    Vds_safe = torch.clamp(Vds.reshape(-1, 1), min=0.0)
+    Cgd_low = Cgd0_t * torch.exp(-Vds_safe / Vscale_t)
+    return Cgd_base + Cgd_low
 
 
 def Cds_no_PT(Vds, ND, eps_sic, Ads, Vbi):

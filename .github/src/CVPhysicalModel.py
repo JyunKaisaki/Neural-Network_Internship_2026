@@ -6,7 +6,15 @@ import torch.nn as nn
 
 
 class CVPhysicalParameters(nn.Module):
-    def __init__(self, ND=5.0e16, Agd_init=3.06e-3, Ads_init=4.1e-2, Coxgd_init=1.0e-9, Cgs_init=1100e-12, Vpt_init=1000.0):
+    def __init__(
+            self, 
+            ND=5.0e16, 
+            Agd_init=3.06e-3, 
+            Ads_init=4.1e-2, 
+            Coxgd_init=1.0e-9, 
+            Cgs_init=1100e-12, 
+            Vpt_init=1000.0,
+            Cjfet_min_init=7.0e-12):
         super().__init__()
         self.log_ND = nn.Parameter(torch.log(torch.tensor(float(ND))))
         self.log_Agd = nn.Parameter(torch.log(torch.tensor(float(Agd_init))))
@@ -14,6 +22,7 @@ class CVPhysicalParameters(nn.Module):
         self.log_Coxgd = nn.Parameter(torch.log(torch.tensor(float(Coxgd_init))))
         self.log_Cgs = nn.Parameter(torch.log(torch.tensor(float(Cgs_init))))
         self.log_Vpt = nn.Parameter(torch.log(torch.tensor(float(Vpt_init))))
+        self.log_Cjfet_min = nn.Parameter(torch.log(torch.tensor(float(Cjfet_min_init))))
 
     @property
     def ND(self):
@@ -27,7 +36,9 @@ class CVPhysicalParameters(nn.Module):
         Coxgd = torch.exp(self.log_Coxgd)
         Cgs_const = torch.exp(self.log_Cgs)
         Vpt = torch.exp(self.log_Vpt)
-        return {"ND": ND, "Agd": Agd, "Ads": Ads, "Coxgd": Coxgd, "Cgs_const": Cgs_const, "Vpt": Vpt}
+        Cjfet_min = torch.exp(self.log_Cjfet_min)
+
+        return {"ND": ND, "Agd": Agd, "Ads": Ads, "Coxgd": Coxgd, "Cgs_const": Cgs_const, "Vpt": Vpt, "Cjfet_min": Cjfet_min}
 
     def report(self, Cox_density=None):
         values = self.values(Cox_density)

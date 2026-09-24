@@ -9,10 +9,10 @@ class CVPhysicalParameters(nn.Module):
     def __init__(self, ND=5.0e16, Agd_init=3.06e-3, Ads_init=4.1e-2, Coxgd_init=1.0e-9, Cgs_init=1100e-12, Vpt_init=1000.0):
         super().__init__()
         self.log_ND = nn.Parameter(torch.log(torch.tensor(float(ND))))
-        self.register_buffer("log_Agd", torch.log(torch.tensor(float(Agd_init))))
-        self.register_buffer("log_Ads", torch.log(torch.tensor(float(Ads_init))))
-        self.register_buffer("log_Coxgd", torch.log(torch.tensor(float(Coxgd_init))))
-        self.register_buffer("log_Cgs", torch.log(torch.tensor(float(Cgs_init))))
+        self.log_Agd = nn.Parameter(torch.log(torch.tensor(float(Agd_init))))
+        self.log_Ads = nn.Parameter(torch.log(torch.tensor(float(Ads_init))))
+        self.log_Coxgd = nn.Parameter(torch.log(torch.tensor(float(Coxgd_init))))
+        self.log_Cgs = nn.Parameter(torch.log(torch.tensor(float(Cgs_init))))
         self.log_Vpt = nn.Parameter(torch.log(torch.tensor(float(Vpt_init))))
 
     @property

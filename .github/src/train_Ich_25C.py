@@ -6,7 +6,7 @@ import torch
 import matplotlib.pyplot as plt
 
 from DeviceData import load_iv_characteristics
-from SurfacePotential import load_surface_potential_pkl, surface_potential
+from raw_SurfacePotential import load_surface_potential_pkl, surface_potential
 from Channel_Current_Ich import effective_vds, channel_current_physical
 from IVPhysicalModel import IVPhysicalParameters, save_iv_physical_pkl
 

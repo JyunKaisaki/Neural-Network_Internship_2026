@@ -13,6 +13,7 @@ def phi_init(
     Dit_edge, # Interface trap density at band edges
     sigma_it, # Standard deviation of interface trap energy distribution
     Eg,   # Bandgap energy
+    Qox=0.0, # Fixed oxide charge density
 ):
     # 1. Thermal Voltage(V) phi_t = k_B * T / q 
     q = torch.as_tensor(1.602e-19, dtype=Vgs.dtype, device=Vgs.device)
@@ -30,6 +31,7 @@ def phi_init(
     NA = torch.as_tensor(NA, dtype=Vgs.dtype, device=Vgs.device)
     eps_sic = torch.as_tensor(eps_sic, dtype=Vgs.dtype, device=Vgs.device)
     Cox = torch.as_tensor(Cox, dtype=Vgs.dtype, device=Vgs.device)
+    Qox = torch.as_tensor(Qox, dtype=Vgs.dtype, device=Vgs.device)
     Vfbs0 = torch.as_tensor(Vfbs0, dtype=Vgs.dtype, device=Vgs.device)
     Dit_mid = torch.as_tensor(Dit_mid, dtype=Vgs.dtype, device=Vgs.device)
     Dit_edge = torch.as_tensor(Dit_edge, dtype=Vgs.dtype, device=Vgs.device)
@@ -51,9 +53,12 @@ def phi_init(
 )
 
 
+    # Include the fixed oxide-charge shift in the analytical initial guess.
+    Vfbs0_eff = Vfbs0 - Qox / Cox
+
     # 3. Effective gate potential: uG
     #    Quasi-Fermi potential(phi_f)'s difference at the semiconductor surface: uf
-    uG = (Vgs - Vfbs0) / phi_t
+    uG = (Vgs - Vfbs0_eff) / phi_t
     uf = phi_f / phi_t
 
     # 4. α: Midgap interface-trap correction(?, inferredfrom GPT)

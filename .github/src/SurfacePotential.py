@@ -60,23 +60,12 @@ def surface_potential(
     Dit_edge,
     sigma_it,
     Eg,
+    Qox=0.0,
 ):
     # Add the PINN correction to the analytical initial surface potential.
     Vgs = Vgs.reshape(-1, 1)
     phi_f = phi_f.reshape(-1, 1)
-    phis_ini = phi_init(
-        Vgs,
-        phi_f,
-        T,
-        NA,
-        eps_sic,
-        Cox,
-        Vfbs0,
-        Dit_mid,
-        Dit_edge,
-        sigma_it,
-        Eg,
-    ).reshape(-1, 1)
+    phis_ini = phi_init(Vgs, phi_f, T, NA, eps_sic, Cox, Vfbs0, Dit_mid, Dit_edge, sigma_it, Eg, Qox=Qox).reshape(-1, 1)
     # reshape(-1, 1) ensures that the output is a column vector, which is consistent with the expected output shape of the model.
     return phis_ini + model(Vgs, phi_f)
 
@@ -96,6 +85,7 @@ def predict_phis(
     Dit_edge,
     sigma_it,
     Eg,
+    Qox=0.0,
     dtype=torch.float64,
     device="cpu",
 ):
@@ -103,20 +93,7 @@ def predict_phis(
     Vgs = torch.as_tensor(Vgs, dtype=dtype, device=device).reshape(-1, 1)
     phi_f = torch.as_tensor(phi_f, dtype=dtype, device=device).reshape(-1, 1)
     model.eval()
-    return surface_potential(
-        model,
-        Vgs,
-        phi_f,
-        T=T,
-        NA=NA,
-        eps_sic=eps_sic,
-        Cox=Cox,
-        Vfbs0=Vfbs0,
-        Dit_mid=Dit_mid,
-        Dit_edge=Dit_edge,
-        sigma_it=sigma_it,
-        Eg=Eg,
-    )
+    return surface_potential(model, Vgs, phi_f, T=T, NA=NA, eps_sic=eps_sic, Cox=Cox, Vfbs0=Vfbs0, Dit_mid=Dit_mid, Dit_edge=Dit_edge, sigma_it=sigma_it, Eg=Eg, Qox=Qox)
 
 
 def save_surface_potential_pkl(

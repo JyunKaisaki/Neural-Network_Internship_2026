@@ -6,7 +6,7 @@ import torch
 import matplotlib.pyplot as plt
 
 from DeviceData import load_cv_characteristics
-from physics_loss import physics_loss
+from raw_physics_loss import physics_loss
 from CgdSurfacePotential import DeltaPhiGdPINN, phi_gd_surface, save_cgd_pinn_pkl
 from CVModeling import Cgd, Cds, Cgs, built_in_potential_4h_sic
 from CVPhysicalModel import CVPhysicalParameters, save_cv_physical_pkl

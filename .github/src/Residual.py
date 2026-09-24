@@ -182,10 +182,12 @@ def Vfbs_from_independent(
     T,
     NA,
     Eg,
+    Qox=0.0,
 ):
-    # Treat Vfbs0 as the phi_s-independent part of the effective flat-band voltage.
+    # Include the fixed oxide charge in the phi_s-independent flat-band term.
     q = torch.as_tensor(1.602176634e-19, dtype=phis.dtype, device=phis.device)
     Cox_t = torch.as_tensor(Cox, dtype=phis.dtype, device=phis.device)
+    Qox_t = torch.as_tensor(Qox, dtype=phis.dtype, device=phis.device)
     Vfbs0_t = torch.as_tensor(Vfbs0, dtype=phis.dtype, device=phis.device)
     Dit_mid_t = torch.as_tensor(Dit_mid, dtype=phis.dtype, device=phis.device)
     Dit_edge_t = torch.as_tensor(Dit_edge, dtype=phis.dtype, device=phis.device)
@@ -196,7 +198,7 @@ def Vfbs_from_independent(
     midgap_shift = q * Dit_mid_t * phis / Cox_t
     edge_arg = (phis - phi_Fermi - phi_f_t - Ec_minus_Ei_t) / sigma_t
     edge_shift = q * Dit_edge_t * sigma_t * torch.exp(torch.clamp(edge_arg, min=-80.0, max=80.0)) / Cox_t
-    return Vfbs0_t + midgap_shift + edge_shift
+    return Vfbs0_t - Qox_t / Cox_t + midgap_shift + edge_shift
 
 #######################################
 

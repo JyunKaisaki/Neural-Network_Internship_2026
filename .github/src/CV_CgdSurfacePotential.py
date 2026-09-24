@@ -27,10 +27,11 @@ class DeltaPhiGdPINN(nn.Module):
         return self.net(x)
 
 
-def phi_gd_surface(model, Vgd, Vds, *, T, NA, eps_sic, Cox, Vfbs0, Dit_mid, Dit_edge, sigma_it, Eg):
+def phi_gd_surface(model, Vgd, Vds, *, T, NA, eps_sic, Cox, Vfbs0, Dit_mid, Dit_edge, sigma_it, Eg, Qox=0.0):
+    # Include the fixed oxide charge in the analytical initial surface potential.
     Vgd = Vgd.reshape(-1, 1)
     Vds = Vds.reshape(-1, 1)
-    phigd_ini = phi_init(Vgd, Vds, T, NA, eps_sic, Cox, Vfbs0, Dit_mid, Dit_edge, sigma_it, Eg).reshape(-1, 1)
+    phigd_ini = phi_init(Vgd, Vds, T, NA, eps_sic, Cox, Vfbs0, Dit_mid, Dit_edge, sigma_it, Eg, Qox=Qox).reshape(-1, 1)
     return phigd_ini + model(Vgd, Vds)
 
 

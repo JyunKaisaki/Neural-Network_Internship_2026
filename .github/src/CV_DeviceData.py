@@ -86,9 +86,9 @@ def load_cv_characteristics(template_dir):
         "high": template_dir / "CV_Vds0-1000V",
     }
     file_map = {
-        "Ciss": ("CissLowV.csv", "CissHighV.csv"),
-        "Coss": ("CossLowV.csv", "CossHighV.csv"),
-        "Crss": ("CrssLowV.csv", "CrssHighV.csv"),
+        "Ciss": ("CissLow.csv", "CissHigh.csv"),
+        "Coss": ("CossLow.csv", "CossHigh.csv"),
+        "Crss": ("CrssLow.csv", "CrssHigh.csv"),
     }
     frames = []
     for capacitance, (low_name, high_name) in file_map.items():

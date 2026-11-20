@@ -4,7 +4,7 @@ import numpy as np
 import torch
 import matplotlib.pyplot as plt
 
-from DeviceData import load_body_diode_characteristics
+from CV_DeviceData import load_body_diode_characteristics
 from body_diode_hybrid import BodyDiodeNN, train_ibd_network, predict_ibd, save_ibd_pkl, load_ibd_pkl
 
 # Read Vds and Ibd from every Vgs curve in the 25 C body-diode folder.

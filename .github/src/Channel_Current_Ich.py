@@ -51,6 +51,7 @@ def channel_integral_I_phi(
         T,
         NA,
         Eg,
+        Qox=Qox,
     )
     s0 = torch.clamp(phis_s0, min=0.0)
     sL = torch.clamp(phis_sL, min=0.0)

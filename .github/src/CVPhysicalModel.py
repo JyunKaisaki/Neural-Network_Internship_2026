@@ -13,7 +13,7 @@ class CVPhysicalParameters(nn.Module):
             Ads_init=4.1e-2, 
             Coxgd_init=1.0e-9, 
             Cgs_init=1100e-12, 
-            Vpt_init=1000.0,
+            Vpt_init=520.0,
             Cjfet_min_init=7.0e-12):
         super().__init__()
         self.log_ND = nn.Parameter(torch.log(torch.tensor(float(ND))))

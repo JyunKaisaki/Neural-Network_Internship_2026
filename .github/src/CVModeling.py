@@ -50,17 +50,14 @@ def Cjfet(phigd, Vds, T, NA, ND, Eg, eps_sic, Agd, Cjfet_min=0.0):
     return torch.maximum(Cjfet_depletion, Cjfet_min_t)
 
 
-def Cgd(phigd, Vds, T, NA, ND, Eg, eps_sic, Agd, Coxgd, Cjfet_min=0.0, Cgd0=0.0, Vscale=50.0):
-    # Add a decaying low-voltage gate-drain capacitance component.
+def Cgd(phigd, Vds, T, NA, ND, Eg, eps_sic, Agd, Coxgd, Cjfet_min=0.0):
     C_JFET = Cjfet(phigd, Vds, T, NA, ND, Eg, eps_sic, Agd, Cjfet_min)
     Coxgd_t = torch.clamp(_as_like(Coxgd, phigd), min=1.0e-30)
-    Cgd_base = Coxgd_t * C_JFET/(Coxgd_t + C_JFET)
-    Cgd0_t = torch.clamp(_as_like(Cgd0, phigd), min=0.0)
-    Vscale_t = torch.clamp(_as_like(Vscale, phigd), min=1.0e-6)
-    Vds_safe = torch.clamp(Vds.reshape(-1, 1), min=0.0)
-    Cgd_low = Cgd0_t * torch.exp(-Vds_safe / Vscale_t)
-    return Cgd_base + Cgd_low
-
+    return Coxgd_t * C_JFET/(Coxgd_t + C_JFET)
+#def Cgd(phigd, Vds, T, NA, ND, Eg, eps_sic, Agd, Coxgd, Cjfet_min=0.0):
+    # Use the JFET capacitance directly when Coxgd is not rate limiting.
+    C_JFET = Cjfet(phigd, Vds, T, NA, ND, Eg, eps_sic, Agd, Cjfet_min)
+    return C_JFET
 
 def Cds_no_PT(Vds, ND, eps_sic, Ads, Vbi):
     Vds = Vds.reshape(-1, 1)
